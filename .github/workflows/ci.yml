@@ -1,4 +1,4 @@
-name: ASP.NET Core MVC CI
+name: ASP.NET Core MVC CI-CD
 
 on:
   push:
@@ -42,3 +42,36 @@ jobs:
       with:
         name: cicd-mvc-app
         path: ./publish
+
+
+  deploy:
+
+    needs: build
+
+    runs-on: self-hosted
+
+    steps:
+
+    - name: Download published application
+      uses: actions/download-artifact@v4
+      with:
+        name: cicd-mvc-app
+        path: ./publish
+
+    - name: Stop IIS App Pool
+      shell: powershell
+      run: |
+        Import-Module WebAdministration
+        Stop-WebAppPool -Name "CICD-Pool"
+
+    - name: Deploy application to IIS
+      shell: powershell
+      run: |
+        Remove-Item "C:\inetpub\CICD\*" -Recurse -Force
+        Copy-Item ".\publish\*" "C:\inetpub\CICD" -Recurse -Force
+
+    - name: Start IIS App Pool
+      shell: powershell
+      run: |
+        Import-Module WebAdministration
+        Start-WebAppPool -Name "CICD-Pool"
