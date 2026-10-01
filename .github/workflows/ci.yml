@@ -25,10 +25,19 @@ jobs:
         dotnet-version: '8.0.x'
 
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore CICD/CICD.csproj
 
     - name: Build application
-      run: dotnet build --no-restore --configuration Release
+      run: dotnet build CICD/CICD.csproj --no-restore --configuration Release
 
     - name: Test application
-      run: dotnet test --no-build --configuration Release
+      run: dotnet test CICD/CICD.csproj --no-build --configuration Release
+
+    - name: Publish application
+      run: dotnet publish CICD/CICD.csproj --configuration Release --output ./publish
+
+    - name: Upload published application
+      uses: actions/upload-artifact@v4
+      with:
+        name: cicd-mvc-app
+        path: ./publish
