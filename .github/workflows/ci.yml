@@ -3,11 +3,11 @@ name: ASP.NET Core MVC CI
 on:
   push:
     branches:
-      - main
+      - master
 
   pull_request:
     branches:
-      - main
+      - master
 
 jobs:
   build:
