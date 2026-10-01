@@ -37,6 +37,41 @@ jobs:
     - name: Publish application
       run: dotnet publish CICD/CICD.csproj --configuration Release --output ./publish
 
+    - name: Check publish files
+      shell: powershell
+      run: |
+        Write-Host "========================================"
+        Write-Host "PUBLISHED FILES"
+        Write-Host "========================================"
+
+        Get-ChildItem ".\publish" -Recurse
+
+        Write-Host ""
+        Write-Host "========================================"
+        Write-Host "CHECK IMPORTANT FILES"
+        Write-Host "========================================"
+
+        if (Test-Path ".\publish\CICD.dll") {
+            Write-Host "CICD.dll EXISTS"
+        }
+        else {
+            Write-Error "CICD.dll NOT FOUND"
+        }
+
+        if (Test-Path ".\publish\CICD.runtimeconfig.json") {
+            Write-Host "CICD.runtimeconfig.json EXISTS"
+        }
+        else {
+            Write-Error "CICD.runtimeconfig.json NOT FOUND"
+        }
+
+        if (Test-Path ".\publish\web.config") {
+            Write-Host "web.config EXISTS"
+        }
+        else {
+            Write-Error "web.config NOT FOUND"
+        }
+
     - name: Upload published application
       uses: actions/upload-artifact@v4
       with:
@@ -58,20 +93,120 @@ jobs:
         name: cicd-mvc-app
         path: ./publish
 
-    - name: Stop IIS App Pool
+    - name: Check downloaded files
+      shell: powershell
+      run: |
+        Write-Host "========================================"
+        Write-Host "DOWNLOADED FILES"
+        Write-Host "========================================"
+
+        Get-ChildItem ".\publish" -Recurse
+
+        Write-Host ""
+        Write-Host "Checking CICD.dll..."
+
+        if (Test-Path ".\publish\CICD.dll") {
+            Write-Host "CICD.dll EXISTS"
+        }
+        else {
+            Write-Error "CICD.dll NOT FOUND AFTER ARTIFACT DOWNLOAD"
+        }
+
+    - name: Stop CICD Website and App Pool
       shell: powershell
       run: |
         Import-Module WebAdministration
+
+        Write-Host "Stopping CICD website..."
+        Stop-Website -Name "CICD"
+
+        Write-Host "Stopping CICD App Pool..."
         Stop-WebAppPool -Name "CICD-Pool"
+
+        Start-Sleep -Seconds 5
+
+    - name: Stop CICD Worker Process
+      shell: powershell
+      run: |
+        Write-Host "Checking IIS worker processes..."
+
+        $processes = Get-CimInstance Win32_Process -Filter "Name='w3wp.exe'"
+
+        foreach ($process in $processes) {
+
+            if ($process.CommandLine -like '*-ap "CICD"*') {
+
+                Write-Host "Stopping CICD worker process PID: $($process.ProcessId)"
+
+                Stop-Process -Id $process.ProcessId -Force
+            }
+        }
+
+        Start-Sleep -Seconds 3
+
+        Write-Host "CICD worker process stopped."
 
     - name: Deploy application to IIS
       shell: powershell
       run: |
-        Remove-Item "C:\inetpub\CICD\*" -Recurse -Force
-        Copy-Item ".\publish\*" "C:\inetpub\CICD" -Recurse -Force
+        Write-Host "========================================"
+        Write-Host "DEPLOYING APPLICATION"
+        Write-Host "========================================"
 
-    - name: Start IIS App Pool
+        $source = ".\publish"
+        $destination = "C:\inetpub\CICD"
+
+        Write-Host "Source: $source"
+        Write-Host "Destination: $destination"
+
+        Write-Host ""
+        Write-Host "Removing old application files..."
+
+        Remove-Item "$destination\*" -Recurse -Force
+
+        Write-Host ""
+        Write-Host "Copying new application files..."
+
+        Copy-Item "$source\*" "$destination" -Recurse -Force
+
+        Write-Host ""
+        Write-Host "Deployment completed."
+
+        Write-Host ""
+        Write-Host "========================================"
+        Write-Host "IIS FOLDER AFTER DEPLOYMENT"
+        Write-Host "========================================"
+
+        Get-ChildItem "$destination" -Recurse
+
+        Write-Host ""
+        Write-Host "Checking important files..."
+
+        if (Test-Path "$destination\CICD.dll") {
+            Write-Host "CICD.dll EXISTS"
+        }
+        else {
+            Write-Error "CICD.dll NOT FOUND IN IIS FOLDER"
+        }
+
+    - name: Start CICD App Pool and Website
       shell: powershell
       run: |
         Import-Module WebAdministration
+
+        Write-Host "Starting CICD App Pool..."
         Start-WebAppPool -Name "CICD-Pool"
+
+        Start-Sleep -Seconds 3
+
+        Write-Host "Starting CICD Website..."
+        Start-Website -Name "CICD"
+
+        Write-Host ""
+        Write-Host "========================================"
+        Write-Host "CICD DEPLOYMENT FINISHED"
+        Write-Host "========================================"
+
+        Get-WebAppPoolState -Name "CICD-Pool"
+
+        Get-Website -Name "CICD"
