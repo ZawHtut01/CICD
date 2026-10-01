@@ -1,208 +1,518 @@
-﻿@{
-    ViewData["Title"] = "CI/CD Pipeline Integration";
-}
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CI/CD Pipeline — modern UI</title>
+    <!-- Google Font & Font Awesome for crisp icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* ---------- modern reset & base ---------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<style>
-    .cicd-container {
-        max-width: 1000px;
-        margin: 2rem auto;
-        font-family: system-ui, -apple-system, sans-serif;
-    }
+        body {
+            background: #f6f9fc; /* soft neutral background */
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            padding: 2rem 1.5rem;
+            color: #0b1a2e;
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
 
-    .cicd-card {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 16px;
-        padding: 1.5rem 2rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        margin-bottom: 1.5rem;
-    }
+        .cicd-container {
+            max-width: 1100px;
+            width: 100%;
+            margin: 0 auto;
+        }
 
-    .cicd-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid #f1f5f9;
-        padding-bottom: 1rem;
-        margin-bottom: 1.5rem;
-    }
+        /* ---------- heading with subtle gradient accent ---------- */
+        .page-heading {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2.25rem;
+        }
 
-    .pipeline-info {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
+            .page-heading h1 {
+                font-size: 1.9rem;
+                font-weight: 700;
+                letter-spacing: -0.02em;
+                background: linear-gradient(135deg, #0f2b4c, #1e4a7a);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                margin: 0;
+            }
 
-    .status-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.375rem;
-        padding: 0.35rem 0.75rem;
-        border-radius: 9999px;
-        font-size: 0.8125rem;
-        font-weight: 600;
-    }
+            .page-heading .badge-icon {
+                background: #ffffff;
+                border-radius: 14px;
+                width: 42px;
+                height: 42px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 8px 20px -6px rgba(0, 40, 80, 0.15);
+                color: #2563eb;
+                font-size: 1.3rem;
+            }
 
-    .status-success {
-        background-color: #ecfdf5;
-        color: #059669;
-        border: 1px solid #a7f3d0;
-    }
+        /* ---------- CARD – glass / floating look ---------- */
+        .cicd-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            border-radius: 28px;
+            padding: 1.75rem 2rem;
+            box-shadow: 0 25px 45px -12px rgba(0, 20, 40, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            margin-bottom: 2rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
 
-    .status-running {
-        background-color: #eff6ff;
-        color: #2563eb;
-        border: 1px solid #bfdbfe;
-    }
+            .cicd-card:hover {
+                box-shadow: 0 30px 55px -12px rgba(0, 40, 80, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+                transform: translateY(-2px);
+            }
 
-    .dot-pulse {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background-color: currentColor;
-    }
+        /* ---------- card header (pipeline name + status) ---------- */
+        .cicd-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            border-bottom: 1px solid rgba(148, 176, 209, 0.25);
+            padding-bottom: 1.25rem;
+            margin-bottom: 1.75rem;
+        }
 
-    .status-running .dot-pulse {
-        animation: pulse 1.5s infinite;
-    }
+        .pipeline-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
 
-    @@keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.3; }
-    }
+        .pipeline-name {
+            font-size: 1.25rem;
+            font-weight: 650;
+            letter-spacing: -0.01em;
+            background: #0e1c2f;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
 
-    /* Pipeline Stages Flow */
-    .pipeline-stages {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 1rem;
-        position: relative;
-    }
+            .pipeline-name i {
+                -webkit-text-fill-color: #2c3e5e;
+                color: #2c3e5e;
+                font-size: 1.1rem;
+            }
 
-    .stage-box {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 10px;
-        padding: 1rem;
-        transition: all 0.2s ease;
-    }
+        /* ---------- status pill — refined with glow ---------- */
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.95rem;
+            border-radius: 60px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            text-transform: uppercase;
+            background: #ffffff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+            border: 1px solid transparent;
+        }
 
-    .stage-box:hover {
-        border-color: #cbd5e1;
-        background: #ffffff;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-    }
+        .status-success {
+            background: #e5f9f0;
+            color: #0b6e4f;
+            border-color: #b6ebd4;
+            box-shadow: 0 4px 12px -4px rgba(5, 150, 105, 0.2);
+        }
 
-    .stage-title {
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: #334155;
-        margin-bottom: 0.5rem;
-    }
+        .status-running {
+            background: #e9f2ff;
+            color: #1e5bc6;
+            border-color: #b8d3fe;
+            box-shadow: 0 4px 12px -4px rgba(37, 99, 235, 0.25);
+        }
 
-    .stage-meta {
-        font-size: 0.75rem;
-        color: #64748b;
-        display: flex;
-        justify-content: space-between;
-    }
+        .dot-pulse {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background-color: currentColor;
+            display: inline-block;
+            box-shadow: 0 0 0 0 currentColor;
+        }
 
-    .commit-details {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        margin-top: 1.5rem;
-        padding-top: 1rem;
-        border-top: 1px dashed #e2e8f0;
-        font-size: 0.875rem;
-        color: #475569;
-    }
+        .status-running .dot-pulse {
+            animation: pulseGlow 1.8s infinite;
+        }
 
-    .commit-hash {
-        font-family: monospace;
-        background: #f1f5f9;
-        padding: 0.2rem 0.5rem;
-        border-radius: 6px;
-        color: #0f172a;
-    }
-</style>
+        
 
-<div class="cicd-container">
-    <h2 class="fw-bold mb-4">Continuous Integration & Deployment</h2>
+        /* duration / elapsed */
+        .time-meta {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #5e6f8b;
+            background: rgba(255, 255, 255, 0.6);
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            border: 1px solid rgba(148, 176, 209, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            backdrop-filter: blur(4px);
+        }
 
-    <!-- Pipeline Card 1 -->
-    <div class="cicd-card">
-        <div class="cicd-header">
-            <div class="pipeline-info">
-                <h5 class="m-0 fw-bold">main-deploy-production</h5>
-                <span class="status-pill status-success">
-                    <span class="dot-pulse"></span> Passed
+            .time-meta i {
+                font-size: 0.8rem;
+                opacity: 0.7;
+            }
+
+        /* ---------- PIPELINE STAGES – modern grid with cards ---------- */
+        .pipeline-stages {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stage-box {
+            background: #ffffff;
+            border: 1px solid #e2eaf5;
+            border-radius: 20px;
+            padding: 1.2rem 0.9rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px -6px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+            /* decorative top line */
+            .stage-box::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 4px;
+                background: linear-gradient(90deg, #b3d0ff, #d9e6ff);
+                opacity: 0.6;
+            }
+
+            .stage-box:hover {
+                border-color: #b8cbe0;
+                background: #ffffff;
+                box-shadow: 0 16px 28px -12px rgba(30, 70, 130, 0.2);
+                transform: translateY(-2px);
+            }
+
+        .stage-title {
+            font-size: 0.85rem;
+            font-weight: 650;
+            color: #1e344f;
+            margin-bottom: 0.6rem;
+            letter-spacing: -0.01em;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+            .stage-title i {
+                color: #3b6eb0;
+                font-size: 0.75rem;
+                opacity: 0.8;
+            }
+
+        .stage-meta {
+            font-size: 0.75rem;
+            color: #4a5e7c;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+            background: #f3f8ff;
+            padding: 0.5rem 0.7rem;
+            border-radius: 14px;
+            border: 1px solid #e0ebfa;
+            margin-top: auto;
+            font-weight: 500;
+        }
+
+            .stage-meta .success-check {
+                color: #0d8b5e;
+                font-weight: 700;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.2rem;
+                background: #e1f6ed;
+                padding: 0.15rem 0.5rem;
+                border-radius: 40px;
+                font-size: 0.7rem;
+            }
+
+            .stage-meta .in-progress-text {
+                color: #1b5fc9;
+                font-weight: 700;
+                background: #e3efff;
+                padding: 0.15rem 0.5rem;
+                border-radius: 40px;
+                font-size: 0.7rem;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.25rem;
+            }
+
+        /* specific stage states for running pipeline */
+        .stage-active {
+            border-color: #9bc1ff !important;
+            background: #f8fcff !important;
+            box-shadow: 0 8px 20px -10px #3a7bd5, 0 0 0 1px #c7ddff;
+        }
+
+            .stage-active::before {
+                background: linear-gradient(90deg, #3b82f6, #8bb3ff);
+                opacity: 1;
+                height: 5px;
+            }
+
+        .stage-queued {
+            opacity: 0.7;
+            background: #fbfdff;
+            border-color: #e6edf8;
+        }
+
+            .stage-queued::before {
+                background: linear-gradient(90deg, #d0ddea, #e9f0fa);
+            }
+
+            .stage-queued .stage-title {
+                color: #5b6f8c;
+            }
+
+        /* ---------- commit details (modern footer) ---------- */
+        .commit-details {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.9rem 1.5rem;
+            margin-top: 2rem;
+            padding-top: 1.25rem;
+            border-top: 1px dashed rgba(108, 142, 189, 0.3);
+            font-size: 0.9rem;
+            color: #20415c;
+        }
+
+        .commit-hash {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            background: #e9f0fc;
+            padding: 0.35rem 1rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #135ba8;
+            letter-spacing: 0.3px;
+            border: 1px solid #ccdefa;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+            .commit-hash i {
+                font-size: 0.75rem;
+                opacity: 0.7;
+            }
+
+        .commit-message {
+            font-weight: 500;
+            color: #112b44;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .commit-meta {
+            margin-left: auto;
+            font-size: 0.8rem;
+            color: #4f6587;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 0.25rem 0.9rem;
+            border-radius: 40px;
+            border: 1px solid #dfeaf8;
+        }
+
+            .commit-meta strong {
+                font-weight: 700;
+                color: #0b2a4a;
+            }
+
+        /* ---------- mobile & responsive ---------- */
+       
+
+        /* extra subtle divider */
+        .icon-spacer {
+            margin-right: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="cicd-container">
+        <!-- Modern header with icon -->
+        <div class="page-heading">
+            <div class="badge-icon">
+                <i class="fas fa-code-branch"></i>
+            </div>
+            <h1>CI/CD Pipeline Integration</h1>
+        </div>
+
+        <!-- ========== PIPELINE CARD 1 (SUCCESS) ========== -->
+        <div class="cicd-card">
+            <div class="cicd-header">
+                <div class="pipeline-info">
+                    <div class="pipeline-name">
+                        <i class="fas fa-rocket"></i> main-deploy-production
+                    </div>
+                    <span class="status-pill status-success">
+                        <span class="dot-pulse"></span> Passed
+                    </span>
+                </div>
+                <div class="time-meta">
+                    <i class="far fa-clock"></i> 4m 12s
+                </div>
+            </div>
+
+            <div class="pipeline-stages">
+                <!-- Stage 1 – Build -->
+                <div class="stage-box">
+                    <div class="stage-title"><i class="fas fa-hammer"></i> 1. Build & Restore</div>
+                    <div class="stage-meta">
+                        <span>dotnet build</span>
+                        <span class="success-check"><i class="fas fa-check-circle"></i> 42s</span>
+                    </div>
+                </div>
+                <!-- Stage 2 – Test -->
+                <div class="stage-box">
+                    <div class="stage-title"><i class="fas fa-vial"></i> 2. Test Suite</div>
+                    <div class="stage-meta">
+                        <span>xUnit Tests</span>
+                        <span class="success-check"><i class="fas fa-check-circle"></i> 1m 15s</span>
+                    </div>
+                </div>
+                <!-- Stage 3 – Docker -->
+                <div class="stage-box">
+                    <div class="stage-title"><i class="fab fa-docker"></i> 3. Docker Container</div>
+                    <div class="stage-meta">
+                        <span>Build & Push</span>
+                        <span class="success-check"><i class="fas fa-check-circle"></i> 1m 30s</span>
+                    </div>
+                </div>
+                <!-- Stage 4 – Deploy -->
+                <div class="stage-box">
+                    <div class="stage-title"><i class="fas fa-cloud-upload-alt"></i> 4. Deploy (Prod)</div>
+                    <div class="stage-meta">
+                        <span>Azure App Service</span>
+                        <span class="success-check"><i class="fas fa-check-circle"></i> 45s</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="commit-details">
+                <span class="commit-hash"><i class="fas fa-code-commit"></i> #a38f12c</span>
+                <span class="commit-message"><i class="fas fa-pen"></i> Update production database migration scripts</span>
+                <span class="commit-meta">
+                    <i class="fas fa-user-circle"></i> <strong>Khant Dhwe</strong> • 2 hours ago
                 </span>
             </div>
-            <span class="text-muted small">Duration: 4m 12s</span>
         </div>
 
-        <div class="pipeline-stages">
-            <div class="stage-box">
-                <div class="stage-title">1. Build & Restore</div>
-                <div class="stage-meta"><span>dotnet build</span> <span class="text-success">✓ 42s</span></div>
+        <!-- ========== PIPELINE CARD 2 (RUNNING / IN PROGRESS) ========== -->
+        <div class="cicd-card">
+            <div class="cicd-header">
+                <div class="pipeline-info">
+                    <div class="pipeline-name">
+                        <i class="fas fa-code-branch"></i> feature-user-auth
+                    </div>
+                    <span class="status-pill status-running">
+                        <span class="dot-pulse"></span> Running
+                    </span>
+                </div>
+                <div class="time-meta">
+                    <i class="fas fa-spinner fa-pulse"></i> Elapsed: 1m 50s
+                </div>
             </div>
-            <div class="stage-box">
-                <div class="stage-title">2. Test Suite</div>
-                <div class="stage-meta"><span>xUnit Tests</span> <span class="text-success">✓ 1m 15s</span></div>
-            </div>
-            <div class="stage-box">
-                <div class="stage-title">3. Docker Container</div>
-                <div class="stage-meta"><span>Build & Push</span> <span class="text-success">✓ 1m 30s</span></div>
-            </div>
-            <div class="stage-box">
-                <div class="stage-title">4. Deploy (Prod)</div>
-                <div class="stage-meta"><span>Azure App Service</span> <span class="text-success">✓ 45s</span></div>
-            </div>
-        </div>
 
-        <div class="commit-details">
-            <span class="commit-hash">#a38f12c</span>
-            <span>Update production database migration scripts</span>
-            <span class="ms-auto text-muted small">Triggered by <strong>Khant Dhwe</strong> • 2 hours ago</span>
-        </div>
-    </div>
+            <div class="pipeline-stages">
+                <!-- Stage 1 – Build (done) -->
+                <div class="stage-box">
+                    <div class="stage-title"><i class="fas fa-hammer"></i> 1. Build & Restore</div>
+                    <div class="stage-meta">
+                        <span>dotnet build</span>
+                        <span class="success-check"><i class="fas fa-check-circle"></i> 38s</span>
+                    </div>
+                </div>
+                <!-- Stage 2 – Test (active, running) -->
+                <div class="stage-box stage-active">
+                    <div class="stage-title"><i class="fas fa-vial"></i> 2. Test Suite</div>
+                    <div class="stage-meta">
+                        <span>xUnit Tests</span>
+                        <span class="in-progress-text"><i class="fas fa-spinner fa-pulse"></i> In progress</span>
+                    </div>
+                </div>
+                <!-- Stage 3 – Security Scan (queued) -->
+                <div class="stage-box stage-queued">
+                    <div class="stage-title"><i class="fas fa-shield-alt"></i> 3. Security Scan</div>
+                    <div class="stage-meta">
+                        <span>SonarQube</span>
+                        <span><i class="fas fa-hourglass-half"></i> Queued</span>
+                    </div>
+                </div>
+                <!-- Stage 4 – Deploy (Staging) queued -->
+                <div class="stage-box stage-queued">
+                    <div class="stage-title"><i class="fas fa-cloud-upload-alt"></i> 4. Deploy (Staging)</div>
+                    <div class="stage-meta">
+                        <span>Staging Slot</span>
+                        <span><i class="fas fa-hourglass-half"></i> Queued</span>
+                    </div>
+                </div>
+            </div>
 
-    <!-- Pipeline Card 2 (In Progress) -->
-    <div class="cicd-card">
-        <div class="cicd-header">
-            <div class="pipeline-info">
-                <h5 class="m-0 fw-bold">feature-user-auth</h5>
-                <span class="status-pill status-running">
-                    <span class="dot-pulse"></span> Running
+            <div class="commit-details">
+                <span class="commit-hash"><i class="fas fa-code-commit"></i> #78bc09e</span>
+                <span class="commit-message"><i class="fas fa-pen"></i> Add OAuth2 authorization middleware</span>
+                <span class="commit-meta">
+                    <i class="fas fa-user-circle"></i> <strong>Khant Dhwe</strong> • Just now
                 </span>
             </div>
-            <span class="text-muted small">Elapsed: 1m 50s</span>
         </div>
 
-        <div class="pipeline-stages">
-            <div class="stage-box">
-                <div class="stage-title">1. Build & Restore</div>
-                <div class="stage-meta"><span>dotnet build</span> <span class="text-success">✓ 38s</span></div>
-            </div>
-            <div class="stage-box" style="border-color: #93c5fd; background: #eff6ff;">
-                <div class="stage-title">2. Test Suite</div>
-                <div class="stage-meta"><span>xUnit Tests</span> <span class="text-primary">In progress...</span></div>
-            </div>
-            <div class="stage-box" style="opacity: 0.6;">
-                <div class="stage-title">3. Security Scan</div>
-                <div class="stage-meta"><span>SonarQube</span> <span>Queued</span></div>
-            </div>
-            <div class="stage-box" style="opacity: 0.6;">
-                <div class="stage-title">4. Deploy (Staging)</div>
-                <div class="stage-meta"><span>Staging Slot</span> <span>Queued</span></div>
-            </div>
-        </div>
-
-        <div class="commit-details">
-            <span class="commit-hash">#78bc09e</span>
-            <span>Add OAuth2 authorization middleware</span>
-            <span class="ms-auto text-muted small">Triggered by <strong>Khant Dhwe</strong> • Just now</span>
+        <!-- subtle footer hint (optional) -->
+        <div style="font-size: 0.75rem; color: #7189a8; text-align: right; margin-top: 0.5rem; letter-spacing: 0.2px;">
+            <i class="fas fa-sync-alt fa-spin" style="margin-right: 6px; opacity: 0.6;"></i> live pipeline status — updates automatically
         </div>
     </div>
-</div>
+</body>
+</html>
